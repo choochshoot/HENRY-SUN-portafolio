@@ -165,7 +165,7 @@
         }
         
         .header-spacer.active {
-            height: 140px; /* Altura aproximada del header en móvil */
+            height: 140px;
         }
         
         .header-content {
@@ -239,7 +239,7 @@
             image-rendering: pixelated;
         }
         
-        /* Marcador de visitas sutil y minimalista */
+        /* Marcador de visitas */
         .visit-counter {
             text-align: center;
             padding: 5px 10px;
@@ -377,7 +377,7 @@
             image-rendering: pixelated;
         }
         
-        /* Modal para vista completa de imagen */
+        /* Modal */
         .modal {
             display: none;
             position: fixed;
@@ -559,7 +559,6 @@
                 height: 120px;
             }
             
-            /* Ajuste del marcador de visitas en móvil */
             .visit-counter {
                 font-size: 0.65rem;
                 padding: 4px 8px;
@@ -613,7 +612,6 @@
                 font-size: 0.7rem;
             }
             
-            /* Ajustes para avatar en móvil pequeño */
             .student-avatar-container {
                 padding: 6px;
             }
@@ -631,33 +629,13 @@
                 height: 110px;
             }
             
-            /* Ajuste del marcador de visitas en móvil pequeño */
             .visit-counter {
                 font-size: 0.6rem;
                 padding: 3px 6px;
             }
         }
         
-        /* Efectos especiales */
-        .pixel-corners::before, .pixel-corners::after {
-            content: "";
-            position: absolute;
-            width: 10px;
-            height: 10px;
-            background-color: var(--yellow);
-        }
-        
-        .pixel-corners::before {
-            top: -5px;
-            left: -5px;
-        }
-        
-        .pixel-corners::after {
-            bottom: -5px;
-            right: -5px;
-        }
-        
-        /* Animación de coins - actualizada para la nueva imagen */
+        /* Animación de coins */
         @keyframes coinSpin {
             0% { transform: rotateY(0); }
             100% { transform: rotateY(360deg); }
@@ -670,36 +648,36 @@
     </style>
 </head>
 <body>
-    <!-- Preloader con imagen y texto -->
+    <!-- Preloader -->
     <div id="preloader">
         <div class="preloader-content">
-            <img src="https://i.imgur.com/OpeVWp7.png" alt="Henry Sun" class="preloader-image">
+            <img src="images/preloader.png" alt="Henry Sun" class="preloader-image">
             <div class="loading-text">CARGANDO...</div>
         </div>
     </div>
     
-    <!-- Contenido principal (oculto inicialmente) -->
+    <!-- Contenido principal -->
     <header id="main-header">
         <div class="container">
             <div class="header-content">
                 <!-- Avatar a la izquierda -->
                 <div class="avatar-section">
                     <div class="student-avatar-container">
-                        <img id="student-avatar" src="https://i.imgur.com/F7zq8pc.png" alt="Avatar Henry Sun" class="student-avatar">
+                        <img id="student-avatar" src="" alt="Avatar" class="student-avatar">
                     </div>
                 </div>
                 
                 <!-- Información del estudiante a la derecha -->
                 <div class="student-info">
-                    <div id="student-name" class="student-name">HENRY SUN</div>
+                    <div id="student-name" class="student-name">CARGANDO...</div>
                     <div id="student-coins" class="student-coins">
-                        <img src="https://i.imgur.com/nN0H4tE.png" alt="Coin" class="coin-icon coin-animation">
-                        200 COINS
+                        <img src="images/coin.png" alt="Coin" class="coin-icon coin-animation">
+                        <span id="coins-count">0</span> COINS
                     </div>
                 </div>
             </div>
         </div>
-        <!-- Marcador de visitas sutil y minimalista -->
+        <!-- Marcador de visitas -->
         <div id="visit-counter" class="visit-counter">
             VISITAS: <span id="visit-count">0</span>
         </div>
@@ -714,7 +692,9 @@
             <h2 class="section-title" id="achievements-title">MIS LOGROS <small>(Clic para ver)</small></h2>
             <div id="achievements-content" class="section-content">
                 <div id="achievements-container" class="achievements-grid">
-                    <!-- Los logros se cargarán aquí dinámicamente -->
+                    <div class="no-achievements">
+                        <p>CARGANDO LOGROS...</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -726,7 +706,9 @@
                 Los temas de estudio se cargarán dependiendo el avance de HENRY SUN
             </div>
             <div id="program-container" class="program-list">
-                <!-- Los temas del programa se cargarán aquí dinámicamente -->
+                <div class="program-topic">
+                    <div class="topic-title">CARGANDO TEMAS...</div>
+                </div>
             </div>
         </div>
     </div>
@@ -738,11 +720,20 @@
             <img id="modal-image" class="modal-image" src="" alt="Imagen completa del logro">
         </div>
     </div>
-    
+
+    <!-- Script principal -->
     <script>
+        // Configuración de archivos de datos
+        const DATA_CONFIG = {
+            student: 'data/student.json',
+            achievements: 'data/achievements.json',
+            program: 'data/program.json'
+        };
+
         // Elementos del DOM
         const studentName = document.getElementById('student-name');
-        const studentCoins = document.getElementById('student-coins');
+        const studentAvatar = document.getElementById('student-avatar');
+        const coinsCount = document.getElementById('coins-count');
         const achievementsContainer = document.getElementById('achievements-container');
         const programContainer = document.getElementById('program-container');
         const preloader = document.getElementById('preloader');
@@ -755,23 +746,28 @@
         const imageModal = document.getElementById('image-modal');
         const modalImage = document.getElementById('modal-image');
         const closeModal = document.querySelector('.close-modal');
-        
-        // Ocultar preloader después de 5 segundos
+
+        // Almacenamiento de datos
+        let appData = {
+            student: null,
+            achievements: [],
+            program: []
+        };
+
+        // Ocultar preloader
         window.addEventListener('load', function() {
             setTimeout(function() {
                 preloader.style.opacity = '0';
                 setTimeout(function() {
                     preloader.style.display = 'none';
                 }, 500);
-            }, 5000);
+            }, 2000);
         });
-        
+
         // Función para manejar el header fijo en scroll móvil
         function handleFixedHeader() {
-            // Solo aplicar en dispositivos móviles
             if (window.innerWidth <= 768) {
                 const scrollPosition = window.scrollY;
-                
                 if (scrollPosition > 100) {
                     mainHeader.classList.add('fixed-header');
                     headerSpacer.classList.add('active');
@@ -780,135 +776,114 @@
                     headerSpacer.classList.remove('active');
                 }
             } else {
-                // En escritorio, asegurarse de que no esté fijo
                 mainHeader.classList.remove('fixed-header');
                 headerSpacer.classList.remove('active');
             }
         }
-        
-        // Escuchar eventos de scroll y resize
-        window.addEventListener('scroll', handleFixedHeader);
-        window.addEventListener('resize', handleFixedHeader);
-        
+
         // Función para actualizar el contador de visitas
         function updateVisitCounter() {
-            // Obtener el contador actual del localStorage
             let visits = localStorage.getItem('pageVisits');
-            
-            // Si no existe, inicializarlo a 0
             if (visits === null) {
                 visits = 0;
             } else {
                 visits = parseInt(visits);
             }
-            
-            // Incrementar el contador
             visits++;
-            
-            // Guardar el nuevo valor en localStorage
             localStorage.setItem('pageVisits', visits);
-            
-            // Actualizar el elemento en el DOM
             visitCount.textContent = visits;
-            
-            // Añadir clase para efecto visual
             visitCounter.classList.add('updated');
-            
-            // Remover la clase después de la animación
             setTimeout(() => {
                 visitCounter.classList.remove('updated');
             }, 500);
         }
-        
+
         // Función para mostrar/ocultar la sección de logros
         function toggleAchievements() {
             achievementsTitle.classList.toggle('collapsed');
             achievementsContent.classList.toggle('collapsed');
         }
-        
-        // Evento para la sección de logros desplegable
-        achievementsTitle.addEventListener('click', toggleAchievements);
-        
+
         // Función para abrir el modal con la imagen completa
         function openModal(imageSrc) {
             modalImage.src = imageSrc;
             imageModal.style.display = 'flex';
         }
-        
+
         // Función para cerrar el modal
         function closeImageModal() {
             imageModal.style.display = 'none';
         }
-        
-        // Eventos para el modal
-        closeModal.addEventListener('click', closeImageModal);
-        imageModal.addEventListener('click', function(e) {
-            if (e.target === imageModal) {
-                closeImageModal();
+
+        // Cargar datos desde archivos JSON
+        async function loadData() {
+            try {
+                const [studentData, achievementsData, programData] = await Promise.all([
+                    fetch(DATA_CONFIG.student).then(res => res.json()),
+                    fetch(DATA_CONFIG.achievements).then(res => res.json()),
+                    fetch(DATA_CONFIG.program).then(res => res.json())
+                ]);
+
+                appData.student = studentData;
+                appData.achievements = achievementsData;
+                appData.program = programData;
+
+                // Renderizar datos cargados
+                renderStudentInfo();
+                renderAchievements();
+                renderProgram();
+                
+            } catch (error) {
+                console.error('Error cargando datos:', error);
+                loadDefaultData();
             }
-        });
-        
-        // Cargar información del estudiante
-        function loadStudentInfo() {
-            // Datos estáticos del estudiante
-            const student = { name: 'HENRY SUN', coins: 200 };
-            
-            // Actualizar información en la interfaz
-            studentName.textContent = student.name;
         }
-        
-        // Cargar logros del estudiante
-        function loadAchievements() {
-            /*
-            ===========================================
-            AQUÍ SE AGREGAN MÁS LOGROS EN EL FUTURO
-            ===========================================
-            Formato:
-            {
-                title: 'NOMBRE DEL LOGRO',
-                image: 'URL_DE_LA_IMAGEN',
-                date: 'AAAA-MM-DD' (opcional)
+
+        // Datos por defecto si falla la carga
+        function loadDefaultData() {
+            appData = {
+                student: {
+                    name: "HENRY SUN",
+                    avatar: "images/henry-avatar.png",
+                    coins: 200
+                },
+                achievements: [
+                    { 
+                        title: '3D TV MORT ARMADO',
+                        image: 'images/achievement-1.png'
+                    },
+                    { 
+                        title: 'ASURADOS Y LÍNEAS',
+                        image: 'images/achievement-2.png'
+                    }
+                ],
+                program: [
+                    { 
+                        topic_name: '✏️ TEMA 1 — EXPLORACIÓN CREATIVA', 
+                        description: 'Teoría básica sobre dibujo...' 
+                    }
+                ]
+            };
+            renderStudentInfo();
+            renderAchievements();
+            renderProgram();
+        }
+
+        // Renderizar información del estudiante
+        function renderStudentInfo() {
+            if (appData.student) {
+                studentName.textContent = appData.student.name.toUpperCase();
+                studentAvatar.src = appData.student.avatar;
+                studentAvatar.alt = `Avatar ${appData.student.name}`;
+                coinsCount.textContent = appData.student.coins;
             }
-            */
-            
-            // Datos estáticos de logros organizados por nombre
-            const achievements = [
-                { 
-                    title: '3D TV MORT ARMADO',
-                    image: 'https://i.imgur.com/xzj7aNL.png'
-                },
-                { 
-                    title: 'ASURADOS Y LÍNEAS',
-                    image: 'https://i.imgur.com/Pz9QIfA.png'
-                },
-                { 
-                    title: 'DIBUJO LIBRE',
-                    image: 'https://i.imgur.com/PsWsNpP.png'
-                },
-                { 
-                    title: 'SELLOS',
-                    image: 'https://i.imgur.com/qIKSdBf.png'
-                },
-                { 
-                    title: 'SÓLIDOS PLATÓNICOS',
-                    image: 'https://i.imgur.com/dbsi6cn.png'
-                },
-                { 
-                    title: 'SPIDER CUBEE',
-                    image: 'https://i.imgur.com/U1g0HRq.png'
-                },
-                { 
-                    title: 'TV MORT',
-                    image: 'https://i.imgur.com/4LAzeMN.png'
-                }
-            ];
-            
-            // Ordenar logros alfabéticamente por título
-            achievements.sort((a, b) => a.title.localeCompare(b.title));
-            
+        }
+
+        // Renderizar logros
+        function renderAchievements() {
             achievementsContainer.innerHTML = '';
             
-            if (achievements.length === 0) {
+            if (!appData.achievements || appData.achievements.length === 0) {
                 achievementsContainer.innerHTML = `
                     <div class="no-achievements">
                         <p>AÚN NO HAY LOGROS REGISTRADOS</p>
@@ -917,7 +892,10 @@
                 return;
             }
             
-            achievements.forEach(achievement => {
+            // Ordenar logros alfabéticamente
+            appData.achievements.sort((a, b) => a.title.localeCompare(b.title));
+            
+            appData.achievements.forEach(achievement => {
                 const achievementCard = document.createElement('div');
                 achievementCard.className = 'achievement-card';
                 
@@ -926,7 +904,7 @@
                          alt="${achievement.title}" class="achievement-image">
                     <div class="achievement-info">
                         <div class="achievement-title">${achievement.title}</div>
-                        <img src="https://i.imgur.com/F7zq8pc.png" alt="Henry Sun" class="achievement-avatar">
+                        <img src="${appData.student.avatar}" alt="${appData.student.name}" class="achievement-avatar">
                     </div>
                 `;
                 
@@ -938,42 +916,21 @@
                 achievementsContainer.appendChild(achievementCard);
             });
         }
-        
-        // Cargar temas de estudio
-        function loadProgram() {
-            // AQUÍ SE AGREGAN MÁS TEMAS DE ESTUDIO
-            // Datos estáticos de los temas
-            const program = [
-                { 
-                    topic_name: '✏️ TEMA 1 — EXPLORACIÓN CREATIVA Y DIAGNÓSTICO', 
-                    description: 'Teoría: Qué es dibujar; cómo se expresa la creatividad. Actividad: Dibuja a tu personaje favorito (Roblox, Banban, TV Mort). Actividad COINS: Presentar su dibujo y contar su historia.' 
-                },
-                { 
-                    topic_name: '✏️ TEMA 2 — LÍNEAS VERTICALES Y HORIZONTALES', 
-                    description: 'Teoría: Qué son las líneas verticales, qué son las horizontales, para qué sirven en la composición. Actividad: Completar plantilla de líneas con control de pulso. COINS: Completar cada fila sin rendirse.' 
-                },
-                { 
-                    topic_name: '✏️ TEMA 3 — LÍNEAS DIAGONALES Y CURVAS', 
-                    description: 'Teoría: En qué ayudan las líneas diagonales, qué son las líneas curvas y fluidez. Actividad: Crear un robot o monstruo solo con curvas + diagonales. COINS: Inventar nombre creativo.' 
-                },
-                { 
-                    topic_name: '✏️ TEMA 4 — INTRODUCCIÓN AL ASHURADO', 
-                    description: 'Teoría: Sombras básicas, trazos suaves, sombreado lineal. Actividad: Sombrar un personaje sencillo estilo Roblox. COINS: Terminar 3 niveles de sombra.' 
-                },
-                { 
-                    topic_name: '✏️ TEMA 5 — DISTANCIAS Y PROPORCIONES BÁSICAS', 
-                    description: 'Teoría: Qué es proporción, cómo comparar tamaños. Actividad: Crear un personaje pequeño, mediano y grande. COINS: Presentar una comparación graciosa.' 
 
-                },
-                { 
-                    topic_name: '✏️ TEMA 6 — Detalle y Enmascarillado', 
-                    description: 'Teoría: Qué es el detalle,qué es el enmascarillado (tapar zonas para pintar otras) Actividad: Crear mascarilla para personaje.' 
-                }
-            ];
-            
+        // Renderizar temas del programa
+        function renderProgram() {
             programContainer.innerHTML = '';
             
-            program.forEach(topic => {
+            if (!appData.program || appData.program.length === 0) {
+                programContainer.innerHTML = `
+                    <div class="program-topic">
+                        <div class="topic-title">NO HAY TEMAS DISPONIBLES</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            appData.program.forEach(topic => {
                 const topicElement = document.createElement('div');
                 topicElement.className = 'program-topic';
                 topicElement.innerHTML = `
@@ -981,7 +938,6 @@
                     <div class="topic-description">${topic.description}</div>
                 `;
                 
-                // Agregar evento para mostrar/ocultar descripción
                 topicElement.addEventListener('click', () => {
                     const description = topicElement.querySelector('.topic-description');
                     description.classList.toggle('active');
@@ -991,12 +947,68 @@
                 programContainer.appendChild(topicElement);
             });
         }
-        
-        // Cargar todos los datos al iniciar
-        loadStudentInfo();
-        loadAchievements();
-        loadProgram();
-        updateVisitCounter();
+
+        // Funciones globales para modificar desde consola
+        window.updateHenryCoins = function(newCoins) {
+            if (appData.student) {
+                appData.student.coins = parseInt(newCoins);
+                coinsCount.textContent = appData.student.coins;
+                console.log(`Coins de Henry actualizados a: ${newCoins}`);
+            }
+        };
+
+        window.addHenryAchievement = function(imageUrl, title) {
+            const newAchievement = {
+                title: title,
+                image: imageUrl
+            };
+            appData.achievements.push(newAchievement);
+            renderAchievements();
+            console.log('Nuevo logro agregado a Henry:', newAchievement);
+        };
+
+        window.addHenryTopic = function(name, description) {
+            const newTopic = {
+                topic_name: name,
+                description: description
+            };
+            appData.program.push(newTopic);
+            renderProgram();
+            console.log('Nuevo tema agregado a Henry:', newTopic);
+        };
+
+        // Inicializar aplicación
+        function init() {
+            // Eventos
+            window.addEventListener('scroll', handleFixedHeader);
+            window.addEventListener('resize', handleFixedHeader);
+            achievementsTitle.addEventListener('click', toggleAchievements);
+            closeModal.addEventListener('click', closeImageModal);
+            imageModal.addEventListener('click', function(e) {
+                if (e.target === imageModal) {
+                    closeImageModal();
+                }
+            });
+            
+            // Actualizar contador de visitas
+            updateVisitCounter();
+            
+            // Cargar datos
+            loadData();
+            
+            // Exponer funciones en consola
+            console.log('Comandos disponibles desde la consola para Henry:');
+            console.log('- updateHenryCoins(nuevoNumero) - Cambiar número de coins');
+            console.log('- addHenryAchievement(url, titulo) - Agregar logro');
+            console.log('- addHenryTopic(nombre, descripcion) - Agregar tema');
+        }
+
+        // Iniciar cuando el DOM esté listo
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
     </script>
 </body>
 </html>
